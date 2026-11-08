@@ -1,0 +1,2351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RedOps Mobile — Authorized Security Assessment Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=39">
+</head>
+
+<body class="mode-phone">
+
+  <!-- Top Simulator Toolbar (For Testing Controls) -->
+  <header class="simulator-toolbar">
+    <div class="toolbar-brand">
+      <span class="pulse-dot"></span>
+      <span class="toolbar-title">REDOPS MOBILE SIMULATOR & TESTING CONSOLE</span>
+    </div>
+    <div class="toolbar-actions">
+      <div class="assessment-selector-wrap" title="Current Active Assessment">
+        <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">ACTIVE:</span>
+        <select id="assessment-picker" class="assessment-select-input" onchange="handleAssessmentSwitch(this.value)">
+          <option value="asm-acme-2026">Acme Corp Annual Security Audit</option>
+        </select>
+      </div>
+      <button id="toggle-view-btn" class="toolbar-btn active" title="Toggle between Phone Mockup and Desktop View">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+          <line x1="12" y1="18" x2="12.01" y2="18"></line>
+        </svg>
+        <span>View: Phone Mockup</span>
+      </button>
+      <button id="toggle-api-drawer-btn" class="toolbar-btn" title="Inspect Live REST API Network Calls">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+        <span>Live API Log (<span id="api-counter">0</span>)</span>
+      </button>
+      <button id="reset-demo-btn" class="toolbar-btn danger" title="Reload Database Demo Data">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="1 4 1 10 7 10"></polyline>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+        </svg>
+        <span>Reset Demo Data</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Viewport Container -->
+  <main class="simulator-stage">
+
+    <!-- Phone Device Shell -->
+    <div class="device-frame" id="device-frame">
+
+      <!-- Phone Hardware Bezel Elements -->
+      <div class="device-speaker"></div>
+      <div class="device-camera-cutout"></div>
+
+      <!-- Phone Status Bar -->
+      <div class="phone-status-bar">
+        <span class="status-time" id="status-time">09:41</span>
+        <div class="status-icons">
+          <span class="signal-bars"><i></i><i></i><i></i><i></i></span>
+          <span class="wifi-icon"></span>
+          <span class="battery-pill"><span class="battery-level"></span></span>
+        </div>
+      </div>
+
+      <!-- In-App Header / Top App Bar -->
+      <header class="app-top-bar">
+        <div class="brand-row">
+          <div class="brand-shield">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              <path d="M12 8v4" />
+              <path d="M12 16h.01" />
+            </svg>
+          </div>
+          <div class="brand-text">
+            <div class="brand-title-wrap">
+              <span class="brand-title">REDOPS</span>
+            </div>
+            <span class="brand-subtitle">AUTHORIZED PLATFORM</span>
+          </div>
+        </div>
+
+        <div class="app-bar-actions">
+          <div class="sync-pill online" id="sync-pill">
+            <span class="sync-dot"></span>
+            <span class="sync-text">ONLINE</span>
+          </div>
+          <button class="btn-icon-subtle" onclick="handleOperatorLogout()" title="Lock Session / Switch Operator" style="font-size:11px; padding:3px 7px; border:1px solid var(--border-color, #333); border-radius:12px; background:transparent; color:#9ca3af; cursor:pointer;">🔒 Lock</button>
+        </div>
+      </header>
+
+      <!-- Scrollable App Content Viewport -->
+      <div class="app-viewport" id="app-viewport">
+
+        <!-- Mandatory Authorization Warning Banner -->
+        <div class="auth-banner">
+          <div class="auth-banner-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+              <polyline points="9 12 11 14 15 10"></polyline>
+            </svg>
+          </div>
+          <div class="auth-banner-content">
+            <span class="auth-banner-title">AUTHORIZED USE ONLY</span>
+            <p class="auth-banner-text">Use only on systems and networks for which you have explicit authorization.</p>
+          </div>
+        </div>
+
+        <!-- 1. DASHBOARD VIEW -->
+        <section class="app-screen active" id="screen-dashboard">
+
+          <!-- Stat Metric Cards -->
+          <div class="metrics-grid">
+            <div class="metric-card" onclick="switchTab('assessments')">
+              <div class="metric-header">
+                <span class="metric-label">ENGAGEMENTS</span>
+                <span class="metric-icon green">📁</span>
+              </div>
+              <div class="metric-value" id="stat-active-assessments">1</div>
+              <div class="metric-subtext green" id="stat-completed-assessments">0 Completed</div>
+            </div>
+
+            <div class="metric-card" onclick="switchTab('targets')">
+              <div class="metric-header">
+                <span class="metric-label">AUTHORIZED TARGETS</span>
+                <span class="metric-icon cyan">🎯</span>
+              </div>
+              <div class="metric-value" id="stat-total-targets">3</div>
+              <div class="metric-subtext cyan" id="stat-inscope-targets">2 In-Scope</div>
+            </div>
+
+            <div class="metric-card" onclick="switchTab('findings')">
+              <div class="metric-header">
+                <span class="metric-label">TOTAL FINDINGS</span>
+                <span class="metric-icon cyan-light">🐛</span>
+              </div>
+              <div class="metric-value" id="stat-total-findings">3</div>
+              <div class="metric-subtext cyan-light" id="stat-finding-status-sub">2 Open • 1 Remediated</div>
+            </div>
+
+            <div class="metric-card alert" onclick="switchTab('findings')">
+              <div class="metric-header">
+                <span class="metric-label">CRITICAL RISKS</span>
+                <span class="metric-icon red">⚠️</span>
+              </div>
+              <div class="metric-value red" id="stat-critical-findings">1</div>
+              <div class="metric-subtext red">Immediate Remediation</div>
+            </div>
+          </div>
+
+          <!-- 4.1 Severity Distribution Bar -->
+          <div class="sev-bar-container">
+            <div class="sev-bar-header">
+              <span>VULNERABILITY SEVERITY DISTRIBUTION</span>
+              <span id="sev-bar-total-label">3 Total Findings</span>
+            </div>
+            <div class="sev-progress-track">
+              <div class="sev-seg critical" id="sev-bar-critical" style="width: 33.3%;"
+                onclick="filterFindingsBySeverity('CRITICAL')" title="Critical severity (click to filter)"></div>
+              <div class="sev-seg high" id="sev-bar-high" style="width: 0%;" onclick="filterFindingsBySeverity('HIGH')"
+                title="High severity (click to filter)"></div>
+              <div class="sev-seg medium" id="sev-bar-medium" style="width: 33.3%;"
+                onclick="filterFindingsBySeverity('MEDIUM')" title="Medium severity (click to filter)"></div>
+              <div class="sev-seg low" id="sev-bar-low" style="width: 33.3%;" onclick="filterFindingsBySeverity('LOW')"
+                title="Low severity (click to filter)"></div>
+              <div class="sev-seg info" id="sev-bar-info" style="width: 0%;" onclick="filterFindingsBySeverity('INFO')"
+                title="Info severity (click to filter)"></div>
+            </div>
+            <div class="sev-legend">
+              <span class="sev-legend-item" onclick="filterFindingsBySeverity('CRITICAL')"
+                title="Filter Critical findings"><span class="sev-dot" style="background:var(--sev-critical)"></span>
+                Critical (<span id="sev-critical">1</span>)</span>
+              <span class="sev-legend-item" onclick="filterFindingsBySeverity('HIGH')"
+                title="Filter High findings"><span class="sev-dot" style="background:var(--sev-high)"></span> High
+                (<span id="sev-high">0</span>)</span>
+              <span class="sev-legend-item" onclick="filterFindingsBySeverity('MEDIUM')"
+                title="Filter Medium findings"><span class="sev-dot" style="background:var(--sev-medium)"></span> Medium
+                (<span id="sev-medium">1</span>)</span>
+              <span class="sev-legend-item" onclick="filterFindingsBySeverity('LOW')" title="Filter Low findings"><span
+                  class="sev-dot" style="background:var(--sev-low)"></span> Low (<span id="sev-low">1</span>)</span>
+              <span class="sev-legend-item" onclick="filterFindingsBySeverity('INFO')"
+                title="Filter Info findings"><span class="sev-dot" style="background:var(--sev-info)"></span> Info
+                (<span id="sev-info">0</span>)</span>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons (Slideable left to right & right to left) -->
+          <div class="quick-actions-wrapper">
+            <button class="slider-arrow slider-arrow-left" id="qa-arrow-left" onclick="slideQuickActions(-160)"
+              title="Slide Left" aria-label="Slide Left">‹</button>
+            <div class="quick-actions-bar" id="quick-actions-bar">
+              <button class="quick-action-pill" onclick="openModal('modal-new-assessment')">
+                <span>+ Engagement</span>
+              </button>
+              <button class="quick-action-pill" onclick="openModal('modal-new-finding')">
+                <span>+ Finding</span>
+              </button>
+              <button class="quick-action-pill" onclick="openModal('modal-new-note')">
+                <span>+ Note</span>
+              </button>
+              <button class="quick-action-pill" onclick="switchTab('wireless'); triggerWirelessScan();">
+                <span>Airwaves</span>
+              </button>
+              <button class="quick-action-pill" onclick="switchTab('reports')">
+                <span>Report</span>
+              </button>
+              <button class="quick-action-pill" onclick="openModal('modal-upload-evidence')">
+                <span>+ Evidence</span>
+              </button>
+              <button class="quick-action-pill" onclick="scrollToActivityFeed()">
+                <span>Audit Log</span>
+              </button>
+              <button class="quick-action-pill" onclick="switchTab('settings')">
+                <span>Settings</span>
+              </button>
+            </div>
+            <button class="slider-arrow slider-arrow-right" id="qa-arrow-right" onclick="slideQuickActions(160)"
+              title="Slide Right" aria-label="Slide Right">›</button>
+          </div>
+
+          <!-- Recent Engagement Activity -->
+          <div class="activity-section">
+            <div class="section-title-row">
+              <span class="section-title">RECENT ENGAGEMENT ACTIVITY</span>
+              <span class="tag-subtle badge-responsible">🛡️ RESPONSIBLE ROE VERIFIED</span>
+            </div>
+
+            <!-- Responsible Filter & View Options -->
+            <div class="activity-filter-bar">
+              <button class="activity-filter-pill active" onclick="filterActivityFeed('ALL', this)">All
+                Activity</button>
+              <button class="activity-filter-pill" onclick="filterActivityFeed('SCOPE', this)">Authorized Scope</button>
+              <button class="activity-filter-pill" onclick="filterActivityFeed('TARGET', this)">In-Scope
+                Targets</button>
+              <button class="activity-filter-pill" onclick="filterActivityFeed('FINDING', this)">Findings</button>
+              <button class="activity-filter-pill" onclick="filterActivityFeed('NOTEBOOK', this)">Notebook</button>
+              <button class="activity-filter-pill" onclick="filterActivityFeed('WIRELESS', this)">Passive
+                Airwaves</button>
+            </div>
+
+            <div class="activity-list" id="activity-feed">
+              <!-- Dynamically populated from SQLite -->
+            </div>
+          </div>
+
+        </section>
+
+        <!-- 2. ASSESSMENTS / ENGAGEMENT MANAGEMENT -->
+        <section class="app-screen" id="screen-assessments">
+          <div class="screen-header">
+            <div>
+              <h2 class="screen-title">Engagements</h2>
+              <span class="screen-subtitle">Authorized Assessment Management</span>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openModal('modal-new-assessment')">+ Engagement</button>
+          </div>
+
+          <div class="module-toolbar">
+            <input type="text" id="filter-assess-search" class="search-input"
+              placeholder="Search title, client, or scope..." oninput="handleAssessmentFilterChange()">
+            <select id="filter-assess-status" class="select-filter" onchange="handleAssessmentFilterChange()">
+              <option value="ALL">All Statuses</option>
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="COMPLETED">COMPLETED</option>
+              <option value="ARCHIVED">ARCHIVED</option>
+            </select>
+            <select id="filter-assess-type" class="select-filter" onchange="handleAssessmentFilterChange()">
+              <option value="ALL">All Types</option>
+              <option value="Web Application">Web Application</option>
+              <option value="Mobile App">Mobile App</option>
+              <option value="Network Infrastructure">Network</option>
+              <option value="Cloud">Cloud</option>
+              <option value="Wireless">Wireless</option>
+              <option value="API">API Security</option>
+            </select>
+          </div>
+
+          <div class="list-container" id="assessments-list">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- 3. TARGETS VIEW -->
+        <section class="app-screen" id="screen-targets">
+          <div class="sub-nav-bar">
+            <button class="sub-nav-tab active" onclick="switchTab('targets')">🎯 Targets</button>
+            <button class="sub-nav-tab" onclick="switchTab('recon')">🌐 Recon</button>
+            <button class="sub-nav-tab" onclick="switchTab('wireless')">📶 Wireless</button>
+          </div>
+
+          <div class="screen-header">
+            <div>
+              <h2 class="screen-title">Authorized Targets</h2>
+              <span class="screen-subtitle">Scope Boundary Isolation</span>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openModal('modal-new-target')">+ Target</button>
+          </div>
+
+          <div class="list-container" id="targets-list">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- 4. RECON OBSERVATIONS VIEW -->
+        <section class="app-screen" id="screen-recon">
+          <div class="sub-nav-bar">
+            <button class="sub-nav-tab" onclick="switchTab('targets')">🎯 Targets</button>
+            <button class="sub-nav-tab active" onclick="switchTab('recon')">🌐 Recon</button>
+            <button class="sub-nav-tab" onclick="switchTab('wireless')">📶 Wireless</button>
+          </div>
+
+          <div class="screen-header">
+            <div>
+              <h2 class="screen-title">Tool Observations & Recon</h2>
+              <span class="screen-subtitle">Assessment Discoveries & Saved Tool Results</span>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openModal('modal-new-recon')">+ Observe</button>
+          </div>
+
+          <div class="filter-chips">
+            <button class="chip active" onclick="filterRecon('ALL', this)">All</button>
+            <button class="chip" onclick="filterRecon('SUBDOMAIN', this)">Subdomains</button>
+            <button class="chip" onclick="filterRecon('TECH', this)">Tech</button>
+            <button class="chip" onclick="filterRecon('DNS', this)">DNS</button>
+          </div>
+
+          <div class="list-container" id="recon-list">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- 5. PASSIVE WIRELESS VIEW -->
+        <section class="app-screen" id="screen-wireless">
+          <div class="sub-nav-bar">
+            <button class="sub-nav-tab" onclick="switchTab('targets')">🎯 Targets</button>
+            <button class="sub-nav-tab" onclick="switchTab('recon')">🌐 Recon</button>
+            <button class="sub-nav-tab active" onclick="switchTab('wireless')">📶 Wireless</button>
+          </div>
+
+          <div class="screen-header">
+            <div>
+              <h2 class="screen-title">Wireless Enumeration</h2>
+              <span class="screen-subtitle">802.11 Passive Beacon Discovery</span>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button class="btn btn-sm btn-outline" onclick="openModal('modal-new-wireless')">+ AP</button>
+              <button class="btn btn-sm btn-primary" id="btn-scan-wifi" onclick="triggerWirelessScan()">Scan
+                Airwaves</button>
+            </div>
+          </div>
+
+          <div class="wireless-safety-notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"></circle>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            <span>Passive discovery only via Android WifiManager APIs. No deauth, no handshake sniffing, no
+              exploitation.</span>
+          </div>
+
+          <div class="list-container" id="wireless-list">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- 6. FINDINGS VIEW -->
+        <section class="app-screen" id="screen-findings">
+          <div class="screen-header">
+            <div>
+              <h2 class="screen-title">Vulnerability Findings</h2>
+              <span class="screen-subtitle">CVSS Risk Assessments</span>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openModal('modal-new-finding')">+ Finding</button>
+          </div>
+
+          <div class="module-toolbar">
+            <input type="text" id="filter-finding-search" class="search-input"
+              placeholder="Search title, asset, or CWE..." oninput="handleFindingFilterChange()">
+            <select id="filter-finding-severity" class="select-filter" onchange="handleFindingFilterChange()">
+              <option value="ALL">All Severities</option>
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
+              <option value="INFO">INFO</option>
+            </select>
+            <select id="filter-finding-status" class="select-filter" onchange="handleFindingFilterChange()">
+              <option value="ALL">All Statuses</option>
+              <option value="OPEN">OPEN</option>
+              <option value="CONFIRMED">CONFIRMED</option>
+              <option value="REMEDIATED">REMEDIATED</option>
+            </select>
+            <select id="filter-finding-sort" class="select-filter" onchange="handleFindingFilterChange()">
+              <option value="DATE">Newest First</option>
+              <option value="SEVERITY">Highest Severity</option>
+              <option value="TITLE">Title A-Z</option>
+            </select>
+          </div>
+
+          <div class="list-container" id="findings-list">
+            <!-- Populated dynamically -->
+          </div>
+        </section>
+
+        <!-- 4.4 ASSESSMENT NOTEBOOK VIEW -->
+        <section class="app-screen" id="screen-notebook">
+          <div class="screen-header">
+            <div>
+              <h2 class="screen-title">Assessment Notebook</h2>
+              <span class="screen-subtitle">Technical Field Notes & Observations</span>
+            </div>
+            <button class="btn btn-sm btn-primary" onclick="openModal('modal-new-note')">+ Note</button>
+          </div>
+
+          <div class="module-toolbar">
+            <input type="text" id="filter-note-search" class="search-input" placeholder="Search notes, tags..."
+              oninput="handleNoteFilterChange()">
+            <div class="chips-slider-wrapper">
+              <button type="button" class="slider-arrow slider-arrow-left" id="note-chips-arrow-left"
+                onclick="slideNoteChips(-130)" title="Slide Left" aria-label="Slide Left">‹</button>
+              <div class="filter-chips" id="notebook-filter-chips">
+                <button type="button" class="chip active" onclick="filterNotebookCategory('ALL', this)">All</button>
+                <button type="button" class="chip"
+                  onclick="filterNotebookCategory('OBSERVATION', this)">Observations</button>
+                <button type="button" class="chip"
+                  onclick="filterNotebookCategory('METHODOLOGY', this)">Methodology</button>
+                <button type="button" class="chip"
+                  onclick="filterNotebookCategory('CREDENTIALS', this)">Credentials</button>
+                <button type="button" class="chip" onclick="filterNotebookCategory('COMMANDS', this)">Commands</button>
+                <button type="button" class="chip" onclick="filterNotebookCategory('RECON', this)">Recon</button>
+                <button type="button" class="chip"
+                  onclick="filterNotebookCategory('CHECKLIST', this)">Checklists</button>
+                <button type="button" class="chip" onclick="filterNotebookCategory('EVIDENCE', this)">Evidence</button>
+                <button type="button" class="chip" onclick="filterNotebookCategory('GENERAL', this)">General</button>
+              </div>
+              <button type="button" class="slider-arrow slider-arrow-right" id="note-chips-arrow-right"
+                onclick="slideNoteChips(130)" title="Slide Right" aria-label="Slide Right">›</button>
+            </div>
+          </div>
+
+          <div class="list-container" id="notebook-list">
+            <!-- Populated dynamically from SQLite -->
+          </div>
+        </section>
+
+        <!-- 4.7 REPORT VIEW -->
+        <section class="app-screen" id="screen-reports">
+          <div class="screen-header">
+            <div>
+              <h2 class="screen-title" id="report-screen-header-title">Assessment Reports</h2>
+              <span class="screen-subtitle" id="report-screen-header-sub">Executive Summaries & Technical
+                Documentation</span>
+            </div>
+            <div style="display: flex; gap: 6px; align-items: center;">
+              <button class="btn btn-sm btn-outline" onclick="downloadTxtReport()">Download TXT</button>
+              <button class="btn btn-sm btn-primary" onclick="printFullReport()">Export PDF</button>
+            </div>
+          </div>
+
+          <!-- FULL ENGAGEMENT REPORT CARD -->
+          <div class="content-card" id="full-report-card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="card-title">FULL ASSESSMENT REPORT</span>
+              <span class="item-badge badge-in-scope" id="full-report-badge">12 Sections</span>
+            </div>
+            <div style="padding: 12px 14px;">
+              <div
+                style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; flex-wrap: wrap;">
+                <div>
+                  <div style="font-weight: 600; font-size: 13px; color: var(--text-primary);" id="full-report-title">
+                    Acme Corp Annual Security Audit</div>
+                  <div style="font-size: 11px; color: var(--text-secondary); margin-top: 3px;" id="full-report-meta">
+                    Client: Acme Corporation • Assessment Period: 2026-10-01 to 2026-10-15</div>
+                  <div
+                    style="font-size: 10.5px; color: var(--text-muted); font-family: var(--font-mono); margin-top: 4px;"
+                    id="full-report-desc">Includes Executive Summary, Scope, Findings, Methodology & Remediations</div>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                  <button class="btn btn-sm btn-outline" onclick="previewFullReport()" id="btn-preview-full-report"
+                    title="Preview document in viewer">👁️ Preview</button>
+                  <button class="btn btn-sm btn-outline" onclick="downloadTxtReport()" title="Download TXT format">📥
+                    TXT</button>
+                  <button class="btn btn-sm btn-primary" onclick="printFullReport()" title="Export PDF">🖨️ PDF</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Finding-Specific Quick-Export Section -->
+          <div class="content-card" style="margin-top: 16px;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <span class="card-title">FINDING-SPECIFIC ADVISORY REPORTS</span>
+              <span style="font-size: 11px; color: var(--text-muted); font-family: var(--font-mono);">Export Any
+                Finding</span>
+            </div>
+            <div class="list-container" id="findings-report-quick-list" style="margin-top: 10px;">
+              <!-- Populated dynamically with each finding and View / Download TXT / Print PDF buttons -->
+            </div>
+          </div>
+
+          <!-- Report Generation History -->
+          <div class="content-card" style="margin-top: 16px;">
+            <div class="card-header">
+              <span class="card-title">REPORT GENERATION AUDIT HISTORY</span>
+            </div>
+            <div class="list-container" id="report-history-list" style="margin-top: 10px;">
+              <!-- Populated dynamically -->
+            </div>
+          </div>
+        </section>
+
+        <!-- 4.8 SETTINGS AND SECURITY VIEW -->
+        <section class="app-screen" id="screen-settings">
+          <div class="screen-header">
+            <div>
+              <h2 class="screen-title">Settings & Security</h2>
+              <span class="screen-subtitle">Application Lock, Data Protection & Backup</span>
+            </div>
+          </div>
+
+          <!-- Application Lock Settings -->
+          <div class="settings-section-card">
+            <div class="settings-section-title">
+              <span>🔐</span>
+              <span>APPLICATION LOCK & AUTHENTICATION</span>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Security PIN Protection</div>
+                <div class="settings-subtext">Require PIN authentication on application unlock</div>
+              </div>
+              <button class="btn btn-sm btn-outline" onclick="openModal('modal-verify-pin')">Verify / Test PIN</button>
+            </div>
+            <div class="settings-row" onclick="toggleBiometrics()" style="cursor: pointer;"
+              title="Click to toggle biometric enrollment">
+              <div>
+                <div class="settings-label">Biometric Authentication</div>
+                <div class="settings-subtext">Class 3 Strong Biometrics (Fingerprint & 3D Face)</div>
+              </div>
+              <button type="button" class="btn btn-sm btn-outline" id="settings-bio-badge"
+                onclick="event.stopPropagation(); toggleBiometrics()">ENROLLED</button>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Inactivity Auto-Lock Timeout</div>
+                <div class="settings-subtext">Automatically lock application on inactivity</div>
+              </div>
+              <select id="settings-lock-timeout" class="select-filter" onchange="showToast('Inactivity lock updated')">
+                <option value="0">Immediate on Background</option>
+                <option value="60" selected>1 Minute</option>
+                <option value="300">5 Minutes</option>
+                <option value="900">15 Minutes</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Encryption & Privacy Verification -->
+          <div class="settings-section-card">
+            <div class="settings-section-title">
+              <span>🛡️</span>
+              <span>DATA PROTECTION & ENCRYPTION</span>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Storage Encryption Status</div>
+                <div class="settings-subtext">SQLCipher AES-256 (Mobile) / Encrypted Database (Server)</div>
+              </div>
+              <span class="item-badge badge-in-scope">ACTIVE</span>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Key Derivation Function</div>
+                <div class="settings-subtext">PBKDF2-HMAC-SHA256 (10,000 rounds) with CSPRNG Salt</div>
+              </div>
+              <span class="item-badge badge-in-scope">ENFORCED</span>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Ethical Scope Consent Gate</div>
+                <div class="settings-subtext">Requires explicit declaration before assessment creation</div>
+              </div>
+              <span class="item-badge badge-in-scope">ENABLED</span>
+            </div>
+          </div>
+
+          <!-- Backup & Data Retention -->
+          <div class="settings-section-card">
+            <div class="settings-section-title">
+              <span>💾</span>
+              <span>DATABASE BACKUP & SYSTEM RESET</span>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Full Database Backup</div>
+                <div class="settings-subtext">Export assessments, targets, findings, notebook, and evidence</div>
+              </div>
+              <button class="btn btn-sm btn-outline-cyan" onclick="exportDatabaseBackup()">Export JSON</button>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Wipe All Assessment Records</div>
+                <div class="settings-subtext">Purge all engagements, findings, notes, and evidence into an empty
+                  pristine state</div>
+              </div>
+              <button class="btn btn-sm btn-card-delete" onclick="handleClearAllData()">Wipe All Data</button>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-label">Load Course Evaluation Dataset</div>
+                <div class="settings-subtext">Explicitly populate sample evaluation assessment and findings</div>
+              </div>
+              <button class="btn btn-sm btn-outline-cyan" onclick="handleSeedEvaluationData()">Load Evaluation
+                Data</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             TOOLKIT SECTION 1: PASSIVE RECONNAISSANCE
+             ============================================================================== -->
+        <section class="app-screen" id="screen-recon-tools">
+          <div class="toolkit-section-header">
+            <div class="toolkit-section-title">
+              <span>🌐 PASSIVE RECONNAISSANCE</span>
+            </div>
+            <div class="toolkit-section-subtitle">
+              Non-intrusive domain resolution, PTR lookups, RDAP WHOIS registries, and IPv4 CIDR planning. Zero active packets sent to target application layers.
+            </div>
+          </div>
+
+          <!-- Tool Selector Sub-Nav -->
+          <div class="slider-wrapper sub-nav-slider-wrapper">
+            <button class="slider-arrow slider-arrow-left" data-subnav-left="sub-nav-recon" onclick="slideSubNav('sub-nav-recon', -150)" title="Slide Left" aria-label="Slide Left">‹</button>
+            <div class="sub-nav-bar" id="sub-nav-recon">
+              <button class="sub-nav-tab active" onclick="switchReconTool('dns', this)">🌐 DNS Lookup</button>
+              <button class="sub-nav-tab" onclick="switchReconTool('reverse', this)">🔄 Reverse DNS</button>
+              <button class="sub-nav-tab" onclick="switchReconTool('rdap', this)">📜 RDAP / WHOIS</button>
+              <button class="sub-nav-tab" onclick="switchReconTool('ip', this)">📍 IP Info</button>
+              <button class="sub-nav-tab" onclick="switchReconTool('subnet', this)">🔢 Subnet Calc</button>
+            </div>
+            <button class="slider-arrow slider-arrow-right" data-subnav-right="sub-nav-recon" onclick="slideSubNav('sub-nav-recon', 150)" title="Slide Right" aria-label="Slide Right">›</button>
+          </div>
+
+          <!-- Tool 1: DNS Records Resolver -->
+          <div class="tool-panel" id="panel-recon-dns">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🌐</div>
+                <div>
+                  <div class="tool-panel-title-text">DNS Records Resolver</div>
+                  <div class="tool-panel-desc">Queries authoritative name servers for A, AAAA, MX, TXT, NS, CNAME, and SOA resource records.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-dns-status">READY</span>
+            </div>
+
+            <div class="auth-consent-banner">
+              <label class="auth-checkbox-label">
+                <input type="checkbox" id="auth-check-dns" checked>
+                <span>Authorized Audit: I confirm authorization to assess this domain.</span>
+              </label>
+            </div>
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-dns-domain" placeholder="example.com or sub.target.corp" value="google.com">
+              <select class="tool-select" id="select-dns-type">
+                <option value="ALL" selected>ALL RECORDS</option>
+                <option value="A">A (IPv4)</option>
+                <option value="AAAA">AAAA (IPv6)</option>
+                <option value="MX">MX (Mail Exchange)</option>
+                <option value="TXT">TXT (SPF, DKIM, DMARC)</option>
+                <option value="NS">NS (Name Server)</option>
+                <option value="CNAME">CNAME (Alias)</option>
+                <option value="SOA">SOA (Authority)</option>
+              </select>
+              <button class="tool-action-btn" id="btn-run-dns" onclick="runDnsLookup()">
+                <span id="btn-dns-spinner" style="display:none;" class="cyber-spinner"></span>
+                <span>Resolve</span>
+              </button>
+            </div>
+
+            <div class="tool-result-container" id="result-dns-box">
+              <div class="tool-result-header">
+                <span id="label-dns-summary">DNS Query Results</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyDnsResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportDnsResult()">📥 Export JSON</button>
+                  <button class="tool-result-btn" onclick="promptSaveToolResult('DNS')">💾 Save Observation</button>
+                  <button class="tool-result-btn" onclick="saveDnsToAssessment()">➕ Add Target</button>
+                </div>
+              </div>
+              <div id="output-dns-records"></div>
+            </div>
+          </div>
+
+          <!-- Tool 2: Reverse DNS (PTR) Lookup -->
+          <div class="tool-panel" id="panel-recon-reverse" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🔄</div>
+                <div>
+                  <div class="tool-panel-title-text">Reverse DNS (PTR) Lookup</div>
+                  <div class="tool-panel-desc">Performs in-addr.arpa and ip6.arpa PTR pointer resolution to identify hostnames linked to IP addresses.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-rdns-status">READY</span>
+            </div>
+
+            <div class="auth-consent-banner">
+              <label class="auth-checkbox-label">
+                <input type="checkbox" id="auth-check-reverse" checked>
+                <span>Authorized Audit: I confirm authorization to assess this IP.</span>
+              </label>
+            </div>
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-rdns-ip" placeholder="8.8.8.8 or 1.1.1.1" value="8.8.8.8">
+              <button class="tool-action-btn" id="btn-run-rdns" onclick="runReverseDns()">
+                <span id="btn-rdns-spinner" style="display:none;" class="cyber-spinner"></span>
+                <span>Lookup PTR</span>
+              </button>
+            </div>
+
+            <div class="tool-result-container" id="result-rdns-box">
+              <div class="tool-result-header">
+                <span id="label-rdns-summary">PTR Pointer Results</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyRdnsResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportRdnsResult()">📥 Export JSON</button>
+                  <button class="tool-result-btn" onclick="promptSaveToolResult('REVERSE_DNS')">💾 Save Observation</button>
+                </div>
+              </div>
+              <div id="output-rdns-records"></div>
+            </div>
+          </div>
+
+          <!-- Tool 3: RDAP / WHOIS Registry Lookup -->
+          <div class="tool-panel" id="panel-recon-rdap" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">📜</div>
+                <div>
+                  <div class="tool-panel-title-text">RDAP / WHOIS Registry Query</div>
+                  <div class="tool-panel-desc">Queries standard IANA / ICANN Registration Data Access Protocol (RDAP) endpoints for domain or IP registry ownership.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-rdap-status">READY</span>
+            </div>
+
+            <div class="auth-consent-banner">
+              <label class="auth-checkbox-label">
+                <input type="checkbox" id="auth-check-rdap" checked>
+                <span>Authorized Audit: I confirm authorization to query registration for this target.</span>
+              </label>
+            </div>
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-rdap-query" placeholder="example.com or 93.184.216.34" value="example.com">
+              <button class="tool-action-btn" id="btn-run-rdap" onclick="runRdapLookup()">
+                <span id="btn-rdap-spinner" style="display:none;" class="cyber-spinner"></span>
+                <span>Query RDAP</span>
+              </button>
+            </div>
+
+            <div class="tool-result-container" id="result-rdap-box">
+              <div class="tool-result-header">
+                <span id="label-rdap-summary">Registry Details</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyRdapResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportRdapResult()">📥 Export JSON</button>
+                  <button class="tool-result-btn" onclick="promptSaveToolResult('RDAP')">💾 Save Observation</button>
+                </div>
+              </div>
+              <div id="output-rdap-records"></div>
+            </div>
+          </div>
+
+          <!-- Tool: IP Information & Registry Scope -->
+          <div class="tool-panel" id="panel-recon-ip" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">📍</div>
+                <div>
+                  <div class="tool-panel-title-text">IP Information & Scope Query</div>
+                  <div class="tool-panel-desc">Validates IPv4/IPv6, detects RFC 1918/Loopback private scopes, and queries official Regional Internet Registries (RIRs via RDAP).</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-ip-status">READY</span>
+            </div>
+
+            <div class="auth-consent-banner">
+              <label class="auth-checkbox-label">
+                <input type="checkbox" id="auth-check-ip" checked>
+                <span>Authorized Audit: I confirm authorization to assess this network address.</span>
+              </label>
+            </div>
+
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-ip-target" placeholder="e.g. 8.8.8.8 or 2001:4860:4860::8888" value="8.8.8.8">
+              <button class="tool-action-btn" id="btn-run-ip" onclick="runIpInfoLookup()">
+                <span id="btn-ip-spinner" style="display:none;" class="cyber-spinner"></span>
+                <span>Query IP</span>
+              </button>
+            </div>
+
+            <div class="tool-result-container" id="result-ip-box">
+              <div class="tool-result-header">
+                <span id="label-ip-summary">IP Registration & Scope Analysis</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyIpInfoResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportIpInfoResult()">📥 Export JSON</button>
+                  <button class="tool-result-btn" onclick="promptSaveToolResult('IP_INFO')">💾 Save Observation</button>
+                </div>
+              </div>
+              <div id="output-ip-records"></div>
+            </div>
+          </div>
+
+          <!-- Tool 4: IPv4 Subnet & CIDR Calculator -->
+          <div class="tool-panel" id="panel-recon-subnet" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🔢</div>
+                <div>
+                  <div class="tool-panel-title-text">IPv4 Subnet & CIDR Calculator</div>
+                  <div class="tool-panel-desc">Calculates network ID, broadcast IP, usable address range, RFC 1918 scope, and binary representations.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-subnet-status">READY</span>
+            </div>
+
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-subnet-cidr" placeholder="192.168.1.0/24 or 10.0.0.1/16" value="192.168.1.0/24">
+              <button class="tool-action-btn" id="btn-run-subnet" onclick="runSubnetCalc()">
+                <span>Calculate</span>
+              </button>
+            </div>
+
+            <div class="tool-result-container" id="result-subnet-box">
+              <div class="tool-result-header">
+                <span id="label-subnet-summary">Subnet Parameters</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copySubnetResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportSubnetResult()">📥 Export JSON</button>
+                  <button class="tool-result-btn" onclick="promptSaveToolResult('SUBNET')">💾 Save Observation</button>
+                </div>
+              </div>
+              <div id="output-subnet-records"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             TOOLKIT SECTION 2: WEB SECURITY INSPECTION
+             ============================================================================== -->
+        <section class="app-screen" id="screen-websec-tools">
+          <div class="toolkit-section-header">
+            <div class="toolkit-section-title">
+              <span>🛡️ WEB SECURITY INSPECTION</span>
+            </div>
+            <div class="toolkit-section-subtitle">
+              Passive HTTP security header auditing, TLS/SSL certificate verification, and HTTP redirection chain tracer.
+            </div>
+          </div>
+
+          <!-- Tool Selector Sub-Nav -->
+          <div class="slider-wrapper sub-nav-slider-wrapper">
+            <button class="slider-arrow slider-arrow-left" data-subnav-left="sub-nav-websec" onclick="slideSubNav('sub-nav-websec', -140)" title="Slide Left" aria-label="Slide Left">‹</button>
+            <div class="sub-nav-bar" id="sub-nav-websec">
+              <button class="sub-nav-tab active" onclick="switchWebSecTool('headers', this)">🛡️ Security Headers</button>
+              <button class="sub-nav-tab" onclick="switchWebSecTool('ssl', this)">🔒 TLS/SSL Cert</button>
+              <button class="sub-nav-tab" onclick="switchWebSecTool('redirects', this)">🔀 Redirect Tracer</button>
+            </div>
+            <button class="slider-arrow slider-arrow-right" data-subnav-right="sub-nav-websec" onclick="slideSubNav('sub-nav-websec', 140)" title="Slide Right" aria-label="Slide Right">›</button>
+          </div>
+
+          <!-- Tool 1: HTTP Security Headers Analyzer -->
+          <div class="tool-panel" id="panel-web-headers">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🛡️</div>
+                <div>
+                  <div class="tool-panel-title-text">HTTP Security Headers Analyzer</div>
+                  <div class="tool-panel-desc">Evaluates defensive HTTP response headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options, CORS) and detects sensitive server banners.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-headers-status">READY</span>
+            </div>
+
+            <div class="auth-consent-banner">
+              <label class="auth-checkbox-label">
+                <input type="checkbox" id="auth-check-headers" checked>
+                <span>Authorized Audit: I confirm authorization to inspect headers on this URL.</span>
+              </label>
+            </div>
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-sec-url" placeholder="https://example.com" value="https://example.com">
+              <label style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--text-secondary); cursor:pointer;">
+                <input type="checkbox" id="check-sec-redirects" checked> Follow 3xx
+              </label>
+              <button class="tool-action-btn" id="btn-run-headers" onclick="runHttpHeaderScan()">
+                <span id="btn-headers-spinner" style="display:none;" class="cyber-spinner"></span>
+                <span>Audit Headers</span>
+              </button>
+            </div>
+
+            <div class="tool-result-container" id="result-headers-box">
+              <div class="tool-result-header">
+                <span id="label-headers-summary">Header Security Audit</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyHeadersResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportHeadersResult()">📥 Export JSON</button>
+                  <button class="tool-result-btn" onclick="promptSaveToolResult('HEADERS')">💾 Save Observation</button>
+                  <button class="tool-result-btn" onclick="convertCurrentToolResultToFinding('HEADERS')" style="color:var(--cyber-green);">⚡ Convert to Finding</button>
+                </div>
+              </div>
+              <div id="output-headers-records"></div>
+            </div>
+          </div>
+
+          <!-- Tool 2: TLS/SSL Certificate Inspector -->
+          <div class="tool-panel" id="panel-web-ssl" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🔒</div>
+                <div>
+                  <div class="tool-panel-title-text">TLS/SSL Certificate Inspector</div>
+                  <div class="tool-panel-desc">Extracts server certificate chain, SAN domains, validity lifespan, days to expiration, TLS protocol version, and cryptographic cipher suite.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-ssl-status">READY</span>
+            </div>
+
+            <div class="auth-consent-banner">
+              <label class="auth-checkbox-label">
+                <input type="checkbox" id="auth-check-ssl" checked>
+                <span>Authorized Audit: I confirm authorization to inspect TLS on this host.</span>
+              </label>
+            </div>
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-ssl-host" placeholder="example.com" value="example.com">
+              <input type="number" class="tool-input-text" id="input-ssl-port" placeholder="443" value="443" style="max-width:80px;">
+              <button class="tool-action-btn" id="btn-run-ssl" onclick="runSslInspect()">
+                <span id="btn-ssl-spinner" style="display:none;" class="cyber-spinner"></span>
+                <span>Inspect Cert</span>
+              </button>
+            </div>
+
+            <div class="tool-result-container" id="result-ssl-box">
+              <div class="tool-result-header">
+                <span id="label-ssl-summary">TLS Certificate Chain</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copySslResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportSslResult()">📥 Export JSON</button>
+                  <button class="tool-result-btn" onclick="promptSaveToolResult('SSL')">💾 Save Observation</button>
+                  <button class="tool-result-btn" onclick="convertCurrentToolResultToFinding('SSL')" style="color:var(--cyber-green);">⚡ Convert to Finding</button>
+                </div>
+              </div>
+              <div id="output-ssl-records"></div>
+            </div>
+          </div>
+
+          <!-- Tool 3: HTTP Redirect Hop Tracer -->
+          <div class="tool-panel" id="panel-web-redirects" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🔀</div>
+                <div>
+                  <div class="tool-panel-title-text">HTTP Redirect Hop Tracer</div>
+                  <div class="tool-panel-desc">Follows 301, 302, 307, and 308 redirection hops to identify downgrade attacks, unencrypted intermediates, and final destinations.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-redirects-status">READY</span>
+            </div>
+
+            <div class="auth-consent-banner">
+              <label class="auth-checkbox-label">
+                <input type="checkbox" id="auth-check-redirects" checked>
+                <span>Authorized Audit: I confirm authorization to trace redirect chain on this URL.</span>
+              </label>
+            </div>
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-redirect-url" placeholder="http://example.com" value="http://example.com">
+              <button class="tool-action-btn" id="btn-run-redirects" onclick="runRedirectTrace()">
+                <span id="btn-redirects-spinner" style="display:none;" class="cyber-spinner"></span>
+                <span>Trace Hops</span>
+              </button>
+            </div>
+
+            <div class="tool-result-container" id="result-redirects-box">
+              <div class="tool-result-header">
+                <span id="label-redirects-summary">Redirection Chain</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyRedirectsResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportRedirectsResult()">📥 Export JSON</button>
+                  <button class="tool-result-btn" onclick="promptSaveToolResult('REDIRECTS')">💾 Save Observation</button>
+                </div>
+              </div>
+              <div id="output-redirects-records"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==============================================================================
+             TOOLKIT SECTION 3: SECURITY UTILITIES
+             ============================================================================== -->
+        <section class="app-screen" id="screen-utilities-tools">
+          <div class="toolkit-section-header">
+            <div class="toolkit-section-title">
+              <span>🧰 SECURITY UTILITIES</span>
+            </div>
+            <div class="toolkit-section-subtitle">
+              Fully functional local cryptographic utilities: Hash generator, JWT decoder, URL analyzer, Subnet calculator, Multi-encoder, Password strength estimator, and JSON formatter.
+            </div>
+          </div>
+
+          <!-- Tool Selector Sub-Nav (All 7 Core Security Utilities + CVSS) -->
+          <div class="slider-wrapper sub-nav-slider-wrapper">
+            <button class="slider-arrow slider-arrow-left" data-subnav-left="sub-nav-utilities" onclick="slideSubNav('sub-nav-utilities', -160)" title="Slide Left" aria-label="Slide Left">‹</button>
+            <div class="sub-nav-bar" id="sub-nav-utilities">
+              <button class="sub-nav-tab active" onclick="switchUtilTool('hash', this)">🔐 Hash Gen</button>
+              <button class="sub-nav-tab" onclick="switchUtilTool('jwt', this)">🎫 JWT Decoder</button>
+              <button class="sub-nav-tab" onclick="switchUtilTool('url', this)">🔗 URL Analyzer</button>
+              <button class="sub-nav-tab" onclick="switchUtilTool('subnet', this)">🔢 Subnet Calc</button>
+              <button class="sub-nav-tab" onclick="switchUtilTool('convert', this)">🔠 Encoder/Decoder</button>
+              <button class="sub-nav-tab" onclick="switchUtilTool('pwd', this)">🛡️ Password Strength</button>
+              <button class="sub-nav-tab" onclick="switchUtilTool('json', this)">📝 JSON Formatter</button>
+              <button class="sub-nav-tab" onclick="switchUtilTool('cvss', this)">📊 CVSS v3.1</button>
+            </div>
+            <button class="slider-arrow slider-arrow-right" data-subnav-right="sub-nav-utilities" onclick="slideSubNav('sub-nav-utilities', 160)" title="Slide Right" aria-label="Slide Right">›</button>
+          </div>
+
+          <!-- 1. HASH GENERATOR (Text & File Hashing) -->
+          <div class="tool-panel" id="panel-util-hash">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🔐</div>
+                <div>
+                  <div class="tool-panel-title-text">Cryptographic Hash Generator</div>
+                  <div class="tool-panel-desc">Computes deterministic message digests (MD5, SHA-1, SHA-256, SHA-384, SHA-512, HMAC) from text or client-side files.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-hash-status">READY</span>
+            </div>
+
+            <!-- Hash Mode Toggle: Text vs File -->
+            <div style="display:flex; gap:6px; margin-bottom:4px;">
+              <button class="sub-nav-tab active" id="btn-hash-mode-text" onclick="switchHashMode('text')" style="flex:none; padding:4px 12px;">✏️ Text Input</button>
+              <button class="sub-nav-tab" id="btn-hash-mode-file" onclick="switchHashMode('file')" style="flex:none; padding:4px 12px;">📁 File Hashing</button>
+            </div>
+
+            <!-- Text Mode Form -->
+            <div id="hash-text-container" style="display:flex; flex-direction:column; gap:8px;">
+              <textarea class="tool-input-text" id="input-hash-text" rows="2" placeholder="Enter string to hash...">RedOps2026</textarea>
+              <div class="tool-input-row">
+                <input type="text" class="tool-input-text" id="input-hash-salt" placeholder="Optional Salt">
+                <input type="text" class="tool-input-text" id="input-hash-hmac" placeholder="Optional HMAC Secret Key">
+                <button class="tool-action-btn" onclick="runHashGeneration()">Generate Hashes</button>
+              </div>
+            </div>
+
+            <!-- File Mode Form -->
+            <div id="hash-file-container" style="display:none; flex-direction:column; gap:8px;">
+              <input type="file" id="input-hash-file-picker" style="display:none;" onchange="handleFileHashSelect(event)">
+              <div class="file-drop-zone" id="file-drop-zone" onclick="document.getElementById('input-hash-file-picker').click()">
+                <div class="file-drop-icon">📥</div>
+                <div class="file-drop-text" id="file-drop-label">Click or Drop file here to compute hashes</div>
+                <div class="file-drop-subtext">Client-side hashing via Web Crypto API • File is never uploaded</div>
+              </div>
+              <div id="file-hash-meta" style="display:none; font-family:var(--font-mono); font-size:11px; color:var(--cyber-cyan);"></div>
+            </div>
+
+            <div class="tool-result-container" id="result-hash-box">
+              <div class="tool-result-header">
+                <span id="label-hash-meta">Cryptographic Hash Digests</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyAllHashes()">📋 Copy All</button>
+                  <button class="tool-result-btn" onclick="exportHashesJson()">📥 Export JSON</button>
+                </div>
+              </div>
+              <div id="output-hash-records"></div>
+            </div>
+          </div>
+
+          <!-- 2. JWT DECODER (100% Client-Side Local Execution) -->
+          <div class="tool-panel" id="panel-util-jwt" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🎫</div>
+                <div>
+                  <div class="tool-panel-title-text">JSON Web Token (JWT) Decoder</div>
+                  <div class="tool-panel-desc">Decodes JWT header, payload, and claims locally. Interprets expiration timestamps without transmitting tokens externally.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-jwt-status">READY</span>
+            </div>
+
+            <!-- Cryptographic Verification Warning Notice -->
+            <div class="jwt-warning-banner">
+              <span>⚠️</span>
+              <div>
+                <strong>DECODING ONLY:</strong> Decoding parses Base64URL claims locally. It does <strong>NOT</strong> cryptographically verify signatures or establish authenticity. Never trust unverified claims from untrusted parties.
+              </div>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <textarea class="tool-input-text" id="input-jwt-token" rows="3" placeholder="Paste JWT token here (eyJhbGciOi...)"></textarea>
+              <div class="tool-input-row" style="justify-content:space-between;">
+                <button class="tool-result-btn" onclick="loadSampleJwt()">Load Sample Token</button>
+                <button class="tool-action-btn" onclick="runJwtDecode()">Decode Token Locally</button>
+              </div>
+            </div>
+
+            <div class="tool-result-container" id="result-jwt-box">
+              <div class="tool-result-header">
+                <span id="label-jwt-meta">Decoded Claims & Timestamps</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyJwtPayload()">📋 Copy Payload</button>
+                  <button class="tool-result-btn" onclick="copyAllJwtDecoded()">📋 Copy All</button>
+                </div>
+              </div>
+              <div id="output-jwt-records"></div>
+            </div>
+          </div>
+
+          <!-- 3. URL ANALYZER -->
+          <div class="tool-panel" id="panel-util-url" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🔗</div>
+                <div>
+                  <div class="tool-panel-title-text">URL Structure & Heuristic Analyzer</div>
+                  <div class="tool-panel-desc">Parses scheme, host, port, path, query parameters table, and highlights structural suspicious characteristics without making malicious verdicts.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-url-status">READY</span>
+            </div>
+
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-url-target" placeholder="https://user:pass@example.com:8443/api/v1/auth?redirect=http://test.com#token" value="https://admin:secret@sub.internal.example.corp:8443/api/v2/transfer?dest=10.0.0.1&redirect=http://evil.com#section-auth">
+              <button class="tool-action-btn" onclick="runUrlAnalysis()">Analyze URL</button>
+            </div>
+
+            <div class="tool-result-container" id="result-url-box">
+              <div class="tool-result-header">
+                <span>Parsed URL Structure</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyUrlAnalysis()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportUrlAnalysis()">📥 Export JSON</button>
+                </div>
+              </div>
+              <div id="output-url-records"></div>
+            </div>
+          </div>
+
+          <!-- 4. SUBNET CALCULATOR -->
+          <div class="tool-panel" id="panel-util-subnet" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🔢</div>
+                <div>
+                  <div class="tool-panel-title-text">IPv4 Subnet & CIDR Calculator</div>
+                  <div class="tool-panel-desc">Calculates network address, broadcast address, subnet mask, usable host range, and RFC 1918 scope.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-util-subnet-status">READY</span>
+            </div>
+
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-util-subnet-cidr" placeholder="192.168.1.0/24 or 10.0.0.0/16" value="10.0.0.0/16">
+              <button class="tool-action-btn" onclick="runUtilSubnetCalc()">Calculate</button>
+            </div>
+
+            <div class="tool-result-container" id="result-util-subnet-box">
+              <div class="tool-result-header">
+                <span>Subnet Parameters</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyUtilSubnetResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportUtilSubnetResult()">📥 Export JSON</button>
+                </div>
+              </div>
+              <div id="output-util-subnet-records"></div>
+            </div>
+          </div>
+
+          <!-- 5. ENCODING AND DECODING -->
+          <div class="tool-panel" id="panel-util-convert" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🔠</div>
+                <div>
+                  <div class="tool-panel-title-text">Multi-Format Encoder / Decoder</div>
+                  <div class="tool-panel-desc">Bi-directional conversion between Base64, URL encoding, Hexadecimal, Binary, and UTF-8 Plaintext.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-convert-status">READY</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <textarea class="tool-input-text" id="input-convert-text" rows="3" placeholder="Enter string or encoded payload here...">RedOps Authorized Security Assessment</textarea>
+              <div class="tool-input-row">
+                <label style="font-size:11px; color:var(--text-secondary);">From:</label>
+                <select class="tool-select" id="select-convert-from">
+                  <option value="plaintext" selected>UTF-8 Text (Plaintext)</option>
+                  <option value="base64">Base64</option>
+                  <option value="base64url">Base64URL</option>
+                  <option value="hex">Hexadecimal</option>
+                  <option value="binary">Binary (8-bit)</option>
+                  <option value="url">URL Encoded</option>
+                  <option value="html">HTML Entities</option>
+                  <option value="rot13">ROT-13</option>
+                </select>
+                <button type="button" class="tool-result-btn" onclick="swapConverterFormats()" title="Swap Formats">⇄ Swap</button>
+                <label style="font-size:11px; color:var(--text-secondary); margin-left:6px;">To:</label>
+                <select class="tool-select" id="select-convert-to">
+                  <option value="base64" selected>Base64</option>
+                  <option value="hex">Hexadecimal</option>
+                  <option value="url">URL Encoded</option>
+                  <option value="plaintext">UTF-8 Text (Plaintext)</option>
+                  <option value="binary">Binary (8-bit)</option>
+                  <option value="base64url">Base64URL</option>
+                  <option value="html">HTML Entities</option>
+                  <option value="rot13">ROT-13</option>
+                </select>
+                <button class="tool-action-btn" onclick="runFormatConversion()">Convert</button>
+              </div>
+            </div>
+
+            <div class="tool-result-container active" id="result-convert-box">
+              <div class="tool-result-header">
+                <span id="label-convert-meta">Converted Output</span>
+                <div class="tool-result-actions">
+                  <button class="tool-result-btn" onclick="copyConvertResult()">📋 Copy</button>
+                  <button class="tool-result-btn" onclick="exportConvertResult()">📥 Export TXT</button>
+                </div>
+              </div>
+              <textarea class="tool-code-output" id="output-convert-text" rows="3" readonly style="width:100%; box-sizing:border-box;"></textarea>
+            </div>
+          </div>
+
+          <!-- 6. PASSWORD STRENGTH ESTIMATOR -->
+          <div class="tool-panel" id="panel-util-pwd" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">🛡️</div>
+                <div>
+                  <div class="tool-panel-title-text">Password Strength & Entropy Estimator</div>
+                  <div class="tool-panel-desc">Calculates Shannon entropy, character diversity, and detects dictionary words, repeated chars, and keyboard walks.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-pwd-status">READY</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <div style="position:relative; display:flex; align-items:center;">
+                <input type="password" class="tool-input-text" id="input-pwd-evaluate" placeholder="Enter password to evaluate in real-time..." style="width:100%; padding-right:40px;" oninput="evaluatePasswordStrengthLive(this.value)">
+                <button type="button" class="btn-icon" onclick="togglePasswordVisibility()" style="position:absolute; right:8px; background:transparent; border:none; color:var(--text-secondary); cursor:pointer;" title="Show/Hide Password">👁️</button>
+              </div>
+            </div>
+
+            <!-- Strength Meter & Evaluation Card -->
+            <div class="pwd-meter-container">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span style="font-family:var(--font-mono); font-size:11px; color:var(--text-secondary);">STRENGTH RATING</span>
+                <div style="display:flex; align-items:baseline; gap:8px;">
+                  <span id="pwd-score-val" style="font-family:var(--font-mono); font-size:18px; font-weight:800; color:var(--text-muted);">0%</span>
+                  <span class="item-badge" id="pwd-strength-pill" style="font-size:10px;">ENTER PASSWORD</span>
+                </div>
+              </div>
+
+              <!-- Animated Progress Bar -->
+              <div class="pwd-meter-track">
+                <div class="pwd-meter-fill" id="pwd-meter-bar"></div>
+              </div>
+
+              <!-- Diversity Pills -->
+              <div class="pwd-pills-row">
+                <span class="pwd-pill" id="pill-pwd-len">✓ 14+ Chars</span>
+                <span class="pwd-pill" id="pill-pwd-lower">✓ Lowercase (a-z)</span>
+                <span class="pwd-pill" id="pill-pwd-upper">✓ Uppercase (A-Z)</span>
+                <span class="pwd-pill" id="pill-pwd-num">✓ Digits (0-9)</span>
+                <span class="pwd-pill" id="pill-pwd-sym">✓ Symbols (!@#$)</span>
+              </div>
+
+              <div id="output-pwd-details" style="font-family:var(--font-mono); font-size:11px; display:flex; flex-direction:column; gap:8px; margin-top:4px;">
+                <div style="color:var(--text-muted); font-size:10.5px;">Entropy: <strong id="pwd-entropy-val" style="color:var(--cyber-cyan);">0 bits</strong> • Length: <strong id="pwd-length-val">0</strong></div>
+                <div id="pwd-crack-times" style="font-size:10px; color:var(--text-secondary);"></div>
+                <div id="pwd-suggestions" style="font-size:10.5px; line-height:1.4;"></div>
+              </div>
+
+              <div style="font-size:9.5px; color:var(--text-muted); border-top:1px solid rgba(255,255,255,0.04); padding-top:6px; display:flex; align-items:center; gap:4px;">
+                <span>🔒</span> 100% Client-Side Evaluation — entered password is never transmitted, saved, or logged.
+              </div>
+            </div>
+          </div>
+
+          <!-- 7. JSON FORMATTER & VALIDATOR -->
+          <div class="tool-panel" id="panel-util-json" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">📝</div>
+                <div>
+                  <div class="tool-panel-title-text">JSON Formatter & Syntax Validator</div>
+                  <div class="tool-panel-desc">Formats, minifies, validates JSON, and provides exact line/column syntax error reporting with code pointer snippets.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-json-status">READY</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              <textarea class="tool-input-text" id="input-json-editor" rows="6" placeholder='Paste JSON here (e.g. {"name": "RedOps", "status": "active"})...' style="font-family:var(--font-mono); font-size:11px;">{"app":"RedOps Mobile","version":"2.5","modules":["recon","websec","utilities","workspace"],"active":true}</textarea>
+              <div class="tool-input-row">
+                <button class="tool-action-btn" onclick="formatJsonText(2)">Pretty Print (2 Sp)</button>
+                <button class="tool-result-btn" onclick="formatJsonText(4)">Pretty Print (4 Sp)</button>
+                <button class="tool-result-btn" onclick="minifyJsonText()">Minify / Compact</button>
+                <button class="tool-result-btn" onclick="copyJsonText()">📋 Copy</button>
+                <button class="tool-result-btn" onclick="clearJsonEditor()">Clear</button>
+              </div>
+            </div>
+
+            <div id="json-diagnostics-box" style="display:none;"></div>
+          </div>
+
+          <!-- 8. CVSS v3.1 RISK CALCULATOR -->
+          <div class="tool-panel" id="panel-util-cvss" style="display:none;">
+            <div class="tool-panel-header">
+              <div class="tool-panel-info">
+                <div class="tool-panel-icon">📊</div>
+                <div>
+                  <div class="tool-panel-title-text">FIRST CVSS v3.1 Risk Calculator</div>
+                  <div class="tool-panel-desc">Interactive Common Vulnerability Scoring System (CVSS v3.1) base metric matrix with real-time severity rating and vector generation.</div>
+                </div>
+              </div>
+              <span class="tool-status-badge ready" id="badge-cvss-status">READY</span>
+            </div>
+
+            <!-- Vector Quick Bar -->
+            <div class="tool-input-row">
+              <input type="text" class="tool-input-text" id="input-cvss-vector" value="CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H">
+              <button class="tool-result-btn" onclick="loadCvssVectorFromInput()">Load Vector</button>
+            </div>
+
+            <!-- Interactive Metric Matrix -->
+            <div class="cvss-matrix-grid">
+              <div class="cvss-metric-group">
+                <span class="cvss-metric-label">Attack Vector (AV)</span>
+                <div class="cvss-btn-row">
+                  <button type="button" class="cvss-btn-opt active" data-metric="AV" data-val="N" onclick="setCvssMetric('AV','N',this)">Network (N)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="AV" data-val="A" onclick="setCvssMetric('AV','A',this)">Adjacent (A)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="AV" data-val="L" onclick="setCvssMetric('AV','L',this)">Local (L)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="AV" data-val="P" onclick="setCvssMetric('AV','P',this)">Phys (P)</button>
+                </div>
+              </div>
+
+              <div class="cvss-metric-group">
+                <span class="cvss-metric-label">Attack Complexity (AC)</span>
+                <div class="cvss-btn-row">
+                  <button type="button" class="cvss-btn-opt active" data-metric="AC" data-val="L" onclick="setCvssMetric('AC','L',this)">Low (L)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="AC" data-val="H" onclick="setCvssMetric('AC','H',this)">High (H)</button>
+                </div>
+              </div>
+
+              <div class="cvss-metric-group">
+                <span class="cvss-metric-label">Privileges Required (PR)</span>
+                <div class="cvss-btn-row">
+                  <button type="button" class="cvss-btn-opt active" data-metric="PR" data-val="N" onclick="setCvssMetric('PR','N',this)">None (N)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="PR" data-val="L" onclick="setCvssMetric('PR','L',this)">Low (L)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="PR" data-val="H" onclick="setCvssMetric('PR','H',this)">High (H)</button>
+                </div>
+              </div>
+
+              <div class="cvss-metric-group">
+                <span class="cvss-metric-label">User Interaction (UI)</span>
+                <div class="cvss-btn-row">
+                  <button type="button" class="cvss-btn-opt active" data-metric="UI" data-val="N" onclick="setCvssMetric('UI','N',this)">None (N)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="UI" data-val="R" onclick="setCvssMetric('UI','R',this)">Req (R)</button>
+                </div>
+              </div>
+
+              <div class="cvss-metric-group">
+                <span class="cvss-metric-label">Scope (S)</span>
+                <div class="cvss-btn-row">
+                  <button type="button" class="cvss-btn-opt active" data-metric="S" data-val="U" onclick="setCvssMetric('S','U',this)">Unchanged (U)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="S" data-val="C" onclick="setCvssMetric('S','C',this)">Changed (C)</button>
+                </div>
+              </div>
+
+              <div class="cvss-metric-group">
+                <span class="cvss-metric-label">Confidentiality (C)</span>
+                <div class="cvss-btn-row">
+                  <button type="button" class="cvss-btn-opt" data-metric="C" data-val="N" onclick="setCvssMetric('C','N',this)">None (N)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="C" data-val="L" onclick="setCvssMetric('C','L',this)">Low (L)</button>
+                  <button type="button" class="cvss-btn-opt active" data-metric="C" data-val="H" onclick="setCvssMetric('C','H',this)">High (H)</button>
+                </div>
+              </div>
+
+              <div class="cvss-metric-group">
+                <span class="cvss-metric-label">Integrity (I)</span>
+                <div class="cvss-btn-row">
+                  <button type="button" class="cvss-btn-opt" data-metric="I" data-val="N" onclick="setCvssMetric('I','N',this)">None (N)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="I" data-val="L" onclick="setCvssMetric('I','L',this)">Low (L)</button>
+                  <button type="button" class="cvss-btn-opt active" data-metric="I" data-val="H" onclick="setCvssMetric('I','H',this)">High (H)</button>
+                </div>
+              </div>
+
+              <div class="cvss-metric-group">
+                <span class="cvss-metric-label">Availability (A)</span>
+                <div class="cvss-btn-row">
+                  <button type="button" class="cvss-btn-opt" data-metric="A" data-val="N" onclick="setCvssMetric('A','N',this)">None (N)</button>
+                  <button type="button" class="cvss-btn-opt" data-metric="A" data-val="L" onclick="setCvssMetric('A','L',this)">Low (L)</button>
+                  <button type="button" class="cvss-btn-opt active" data-metric="A" data-val="H" onclick="setCvssMetric('A','H',this)">High (H)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Score Banner -->
+            <div class="cvss-score-banner">
+              <div>
+                <div style="font-size:10.5px; color:var(--text-secondary); font-family:var(--font-mono);">CVSS v3.1 BASE SCORE</div>
+                <div style="display:flex; align-items:baseline; gap:10px; margin-top:2px;">
+                  <span class="cvss-score-pill" id="cvss-score-val" style="color:var(--sev-critical);">9.8</span>
+                  <span class="item-badge badge-sev-critical" id="cvss-severity-pill">CRITICAL</span>
+                </div>
+                <div style="font-size:10px; color:var(--text-muted); font-family:var(--font-mono); margin-top:4px;" id="cvss-subscores-text">
+                  Exploitability: 3.9 • Impact: 5.9
+                </div>
+              </div>
+
+              <div style="display:flex; flex-direction:column; gap:6px; align-items:flex-end;">
+                <button class="tool-result-btn" onclick="copyCvssVector()">📋 Copy Vector</button>
+                <button class="tool-result-btn" onclick="useCvssInFindingModal()" style="color:var(--cyber-green);">➕ Use in Finding</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- In-App Bottom Navigation Bar -->
+      <nav class="app-bottom-bar">
+        <button class="nav-tab active" id="tab-btn-dashboard" onclick="switchTab('dashboard')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"></rect>
+            <rect x="14" y="3" width="7" height="7"></rect>
+            <rect x="14" y="14" width="7" height="7"></rect>
+            <rect x="3" y="14" width="7" height="7"></rect>
+          </svg>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-tab" id="tab-btn-recon" onclick="switchTab('recon-tools')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>Recon</span>
+        </button>
+        <button class="nav-tab" id="tab-btn-websec" onclick="switchTab('websec-tools')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+          </svg>
+          <span>Web Sec</span>
+        </button>
+        <button class="nav-tab" id="tab-btn-utilities" onclick="switchTab('utilities-tools')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+          </svg>
+          <span>Utilities</span>
+        </button>
+        <button class="nav-tab" id="tab-btn-workspace" onclick="switchTab('assessments')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Workspace</span>
+        </button>
+      </nav>
+
+
+<!-- MODAL: OPERATOR LOGIN (AUTHENTICATION & PRIVILEGE ENFORCEMENT) -->
+  <div class="modal-backdrop" id="modal-operator-login">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">🔐 Operator Authentication</span>
+      </div>
+      <form id="form-operator-login" onsubmit="handleOperatorLogin(event)">
+        <div style="padding:8px 0; font-size:12px; color:#9ca3af; line-height:1.4;">
+          Authentication required. Enter verified credentials to initialize session tokens and access authorized security engagements.
+        </div>
+        <div id="login-error-msg" style="display:none; color:#ff5252; font-size:12px; margin-bottom:10px; padding:6px 10px; background:rgba(255,82,82,0.1); border-radius:4px; border:1px solid rgba(255,82,82,0.3);"></div>
+        <div class="form-group">
+          <label>Operator Username *</label>
+          <input type="text" id="login-username" required placeholder="Enter username (e.g. sh@dow_sec)">
+        </div>
+        <div class="form-group">
+          <label>Password *</label>
+          <input type="password" id="login-password" required placeholder="Enter password">
+        </div>
+        <div class="modal-actions" style="margin-top:14px;">
+          <button type="submit" class="btn btn-primary" style="width:100%;">Authenticate Session</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<!-- MODAL: NEW ASSESSMENT (WITH MANDATORY AUTHORIZATION CHECK) -->
+  <div class="modal-backdrop" id="modal-new-assessment">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Create Authorized Assessment</span>
+        <button class="btn-icon" onclick="closeModal('modal-new-assessment')">✕</button>
+      </div>
+      <form id="form-new-assessment" onsubmit="handleCreateAssessment(event)">
+        <div class="form-group">
+          <label>Assessment Name *</label>
+          <input type="text" id="asm-name" required placeholder="e.g. Acme Corp Web Security Audit">
+        </div>
+        <div class="form-group">
+          <label>Client / Organization *</label>
+          <input type="text" id="asm-client" required placeholder="e.g. Acme Corporation">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Start Date *</label>
+            <input type="date" id="asm-start" required>
+          </div>
+          <div class="form-group">
+            <label>End Date *</label>
+            <input type="date" id="asm-end" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Assessment Type *</label>
+          <select id="asm-type">
+            <option value="Web Application">Web Application</option>
+            <option value="API">API Security</option>
+            <option value="Network">Network Enumeration</option>
+            <option value="Wireless">Wireless Passive Audit</option>
+            <option value="Internal">Internal Infrastructure</option>
+            <option value="External">External Perimeter</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Authorized Scope *</label>
+          <input type="text" id="asm-scope" required placeholder="e.g. https://portal.acme.corp, 192.168.10.0/24">
+        </div>
+        <div class="form-group">
+          <label>Out-of-Scope Assets (Strictly Prohibited)</label>
+          <input type="text" id="asm-out-of-scope" placeholder="e.g. hr.acme.corp, third-party payment gateways">
+        </div>
+        <div class="form-group">
+          <label>Assessment Objectives</label>
+          <textarea id="asm-objectives" rows="2" placeholder="Testing objectives and evaluation targets..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Scope Authorization Notes *</label>
+          <textarea id="asm-notes" rows="2"
+            placeholder="Reference authorization letter, contract #, or permission waiver..."></textarea>
+        </div>
+
+        <!-- CRITICAL ETHICAL CHECKPOINT -->
+        <div class="auth-checkbox-box">
+          <label class="custom-checkbox">
+            <input type="checkbox" id="asm-auth-consent" required>
+            <span class="checkmark"></span>
+            <span class="consent-text">I confirm that I am explicitly authorized to assess these systems. Authorized use
+              only.</span>
+          </label>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-new-assessment')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Initialize Assessment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW TARGET -->
+  <div class="modal-backdrop" id="modal-new-target">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Add Assessment Target</span>
+        <button class="btn-icon" onclick="closeModal('modal-new-target')">✕</button>
+      </div>
+      <form id="form-new-target" onsubmit="handleCreateTarget(event)">
+        <div class="form-group">
+          <label>Domain / Hostname</label>
+          <input type="text" id="tgt-domain" placeholder="e.g. portal.acme.corp">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IP Address</label>
+            <input type="text" id="tgt-ip" placeholder="e.g. 192.168.10.50">
+          </div>
+          <div class="form-group">
+            <label>Scope Status *</label>
+            <select id="tgt-scope">
+              <option value="IN_SCOPE">IN SCOPE</option>
+              <option value="OUT_OF_SCOPE">OUT OF SCOPE</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Target URL</label>
+          <input type="url" id="tgt-url" placeholder="https://portal.acme.corp">
+        </div>
+        <div class="form-group">
+          <label>Description & Restrictions</label>
+          <textarea id="tgt-desc" rows="2" placeholder="Asset description and testing limitations..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-new-target')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Target</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW RECON OBSERVATION -->
+  <div class="modal-backdrop" id="modal-new-recon">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Log Recon Observation</span>
+        <button class="btn-icon" onclick="closeModal('modal-new-recon')">✕</button>
+      </div>
+      <form id="form-new-recon" onsubmit="handleCreateRecon(event)">
+        <div class="form-group">
+          <label>Observation Category *</label>
+          <select id="rc-type">
+            <option value="SUBDOMAIN">Subdomain</option>
+            <option value="DOMAIN">Domain</option>
+            <option value="IP">IP Address</option>
+            <option value="PORT">Open Port</option>
+            <option value="TECH">Technology / Framework</option>
+            <option value="SERVER">Web Server</option>
+            <option value="ENDPOINT">API Endpoint</option>
+            <option value="DNS">DNS Record</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Observed Value *</label>
+          <input type="text" id="rc-val" required placeholder="e.g. api.acme.corp or Nginx 1.24">
+        </div>
+        <div class="form-group">
+          <label>Observation Notes</label>
+          <textarea id="rc-notes" rows="2" placeholder="Passive discovery notes, source logs..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-new-recon')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Observation</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: SAVE TOOL RESULT OBSERVATION TO ASSESSMENT -->
+  <div class="modal-backdrop" id="modal-save-observation">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 16px;">💾</span>
+          <span class="modal-title">Save Observation to Assessment</span>
+        </div>
+        <button class="btn-icon" onclick="closeModal('modal-save-observation')">✕</button>
+      </div>
+      <form id="form-save-observation" onsubmit="handleSaveObservationSubmit(event)">
+        <input type="hidden" id="save-obs-tool-name">
+        <input type="hidden" id="save-obs-category">
+        <input type="hidden" id="save-obs-source-info">
+        <input type="hidden" id="save-obs-json-data">
+
+        <div class="form-group">
+          <label>Target Assessment *</label>
+          <select id="save-obs-assessment-select" required>
+            <!-- Populated dynamically with active engagements -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Observation Title *</label>
+          <input type="text" id="save-obs-title" required placeholder="e.g. HTTP Security Headers: https://example.com">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Assessed Target / Asset *</label>
+            <input type="text" id="save-obs-target" required placeholder="e.g. portal.acme.corp">
+          </div>
+          <div class="form-group">
+            <label>Observation Status</label>
+            <select id="save-obs-status">
+              <option value="INFORMATIONAL" selected>INFORMATIONAL</option>
+              <option value="INVESTIGATING">INVESTIGATING</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Observed Summary & Source</label>
+          <textarea id="save-obs-summary" rows="2" placeholder="Summary of tool inspection results..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Operator Field Notes</label>
+          <textarea id="save-obs-notes" rows="2" placeholder="Additional notes or assessment context..."></textarea>
+        </div>
+
+        <div style="font-size: 10px; color: var(--text-muted); background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: 4px; padding: 6px 8px;">
+          ℹ️ <strong>Observation Policy:</strong> Results are recorded as informational observations. Passwords and credentials are never stored. You can convert this observation into a formal finding with CVSS classification at any time.
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-save-observation')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to Assessment</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT OBSERVATION -->
+  <div class="modal-backdrop" id="modal-edit-observation">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 16px;">✏️</span>
+          <span class="modal-title">Edit Observation</span>
+        </div>
+        <button class="btn-icon" onclick="closeModal('modal-edit-observation')">✕</button>
+      </div>
+      <form id="form-edit-observation" onsubmit="handleEditObservationSubmit(event)">
+        <input type="hidden" id="edit-obs-id">
+
+        <div class="form-group">
+          <label>Observation Title *</label>
+          <input type="text" id="edit-obs-title" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Target Asset</label>
+            <input type="text" id="edit-obs-target" readonly style="opacity: 0.7;">
+          </div>
+          <div class="form-group">
+            <label>Observation Status</label>
+            <select id="edit-obs-status">
+              <option value="INFORMATIONAL">INFORMATIONAL</option>
+              <option value="INVESTIGATING">INVESTIGATING</option>
+              <option value="CONVERTED_TO_FINDING">CONVERTED_TO_FINDING</option>
+              <option value="DISMISSED">DISMISSED</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Operator Notes</label>
+          <textarea id="edit-obs-notes" rows="3"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-observation')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW FINDING -->
+  <div class="modal-backdrop" id="modal-new-finding">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 16px;">🛡️</span>
+          <span class="modal-title">Log Vulnerability Finding</span>
+        </div>
+        <button class="btn-icon" onclick="closeModal('modal-new-finding')">✕</button>
+      </div>
+      <form id="form-new-finding" onsubmit="handleCreateFinding(event)">
+        <input type="hidden" id="fnd-convert-from-obs-id">
+        <div class="form-group">
+          <label>Finding Title *</label>
+          <input type="text" id="fnd-title" required placeholder="e.g. Missing HTTP Strict-Transport-Security Header">
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Severity *</label>
+            <select id="fnd-sev" onchange="syncDefaultCvss('fnd-sev', 'fnd-cvss')">
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM" selected>MEDIUM</option>
+              <option value="LOW">LOW</option>
+              <option value="INFO">INFO</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>CVSS (0-10)</label>
+            <input type="number" id="fnd-cvss" min="0" max="10" step="0.1" value="5.3" placeholder="5.3">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="fnd-status">
+              <option value="OPEN" selected>OPEN</option>
+              <option value="CONFIRMED">CONFIRMED</option>
+              <option value="REMEDIATED">REMEDIATED</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Affected Asset *</label>
+          <input type="text" id="fnd-asset" required placeholder="e.g. https://portal.acme.corp/api/login">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category</label>
+            <select id="fnd-category">
+              <option value="Security Misconfiguration" selected>Security Misconfiguration</option>
+              <option value="Injection">Injection (SQLi, Command)</option>
+              <option value="Broken Authentication">Broken Authentication / JWT</option>
+              <option value="Sensitive Data Exposure">Sensitive Data Exposure</option>
+              <option value="SSRF">Server-Side Request Forgery</option>
+              <option value="Wireless Security">Wireless Security</option>
+              <option value="API Security">API Security</option>
+              <option value="Cryptographic Failure">Cryptographic Failure</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>CWE ID Reference</label>
+            <input type="text" id="fnd-cwe" placeholder="e.g. CWE-319, CWE-89">
+          </div>
+        </div>
+
+        <div class="modal-segmented-switch">
+          <button type="button" class="modal-seg-btn active" id="fnd-tab-desc" onclick="switchFindingModalTab('desc', 'fnd')">Overview & Remediation</button>
+          <button type="button" class="modal-seg-btn" id="fnd-tab-tech" onclick="switchFindingModalTab('tech', 'fnd')">PoC & Technical Impact</button>
+        </div>
+
+        <div id="fnd-panel-desc" class="modal-tab-panel active">
+          <div class="form-group">
+            <label>Description & Vulnerability Analysis</label>
+            <textarea id="fnd-desc" rows="2" placeholder="Brief explanation of the vulnerability and observed behavior..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Remediation Guidance</label>
+            <textarea id="fnd-remed" rows="2" placeholder="Recommended fix, patch, or hardening configuration..."></textarea>
+          </div>
+        </div>
+
+        <div id="fnd-panel-tech" class="modal-tab-panel" style="display: none;">
+          <div class="form-group">
+            <label>Technical Details & PoC Payload</label>
+            <textarea id="fnd-tech" rows="2" placeholder="HTTP request/response snippet or exploit payload..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Impact & Business Risk</label>
+            <textarea id="fnd-impact" rows="2" placeholder="Business and security impact..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-new-finding')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Record Finding</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: RESPONSIBLE ENGAGEMENT ACTIVITY DETAIL -->
+  <div class="modal-backdrop" id="modal-activity-detail">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span id="act-modal-icon" style="font-size: 18px;">🛡️</span>
+          <span class="modal-title" id="act-modal-title">Engagement Activity Details</span>
+        </div>
+        <button class="btn-icon" onclick="closeModal('modal-activity-detail')">✕</button>
+      </div>
+      <div class="activity-modal-content">
+        <div class="activity-modal-badge-row">
+          <span class="item-badge badge-in-scope" id="act-modal-type">SCOPE</span>
+          <span class="item-badge badge-responsible-pill" id="act-modal-roe">ROE COMPLIANT</span>
+          <span style="font-size: 11px; color: var(--text-muted); margin-left: auto;" id="act-modal-time">Just
+            now</span>
+        </div>
+        <div class="activity-modal-desc" id="act-modal-desc">
+          Authorized Scope Agreement Verified
+        </div>
+        <div class="activity-modal-meta-box">
+          <div class="meta-row">
+            <span class="meta-label">Responsible Authorization:</span>
+            <span class="meta-val" id="act-modal-auth">Agreement #ACME-SEC-2026-09</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Rules of Engagement:</span>
+            <span class="meta-val text-green" id="act-modal-roe-stmt">Strictly Non-Disruptive • Passive & Authorized
+              Only</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Associated Asset:</span>
+            <span class="meta-val" id="act-modal-asset">portal.acme.corp</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label">Operator Signature:</span>
+            <span class="meta-val text-cyan" id="act-modal-operator">Labib Operator (ADMIN)</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-outline" onclick="closeModal('modal-activity-detail')">Close</button>
+        <button type="button" class="btn btn-primary" id="act-modal-jump-btn" onclick="jumpFromActivityModal()">Open
+          Related Module →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT TARGET -->
+  <div class="modal-backdrop" id="modal-edit-target">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Edit Target Details</span>
+        <button class="btn-icon" onclick="closeModal('modal-edit-target')">✕</button>
+      </div>
+      <form id="form-edit-target" onsubmit="handleUpdateTarget(event)">
+        <input type="hidden" id="edit-tgt-id">
+        <div class="form-group">
+          <label>Domain Name</label>
+          <input type="text" id="edit-tgt-domain" placeholder="e.g. portal.acme.corp">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>IP Address</label>
+            <input type="text" id="edit-tgt-ip" placeholder="192.168.1.1">
+          </div>
+          <div class="form-group">
+            <label>Scope Status</label>
+            <select id="edit-tgt-scope">
+              <option value="IN_SCOPE">IN_SCOPE</option>
+              <option value="OUT_OF_SCOPE">OUT_OF_SCOPE</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Target URL</label>
+          <input type="text" id="edit-tgt-url" placeholder="https://portal.acme.corp">
+        </div>
+        <div class="form-group">
+          <label>Description & Scope Notes</label>
+          <textarea id="edit-tgt-notes" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-target')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT FINDING -->
+  <div class="modal-backdrop" id="modal-edit-finding">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Edit Vulnerability Finding</span>
+        <button class="btn-icon" onclick="closeModal('modal-edit-finding')">✕</button>
+      </div>
+      <form id="form-edit-finding" onsubmit="handleUpdateFinding(event)">
+        <input type="hidden" id="edit-fnd-id">
+        <div class="form-group">
+          <label>Finding Title *</label>
+          <input type="text" id="edit-fnd-title" required>
+        </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label>Severity *</label>
+            <select id="edit-fnd-sev">
+              <option value="CRITICAL">CRITICAL</option>
+              <option value="HIGH">HIGH</option>
+              <option value="MEDIUM">MEDIUM</option>
+              <option value="LOW">LOW</option>
+              <option value="INFO">INFO</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>CVSS (0.0-10)</label>
+            <input type="number" id="edit-fnd-cvss" min="0" max="10" step="0.1">
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="edit-fnd-status">
+              <option value="OPEN">OPEN</option>
+              <option value="CONFIRMED">CONFIRMED</option>
+              <option value="REMEDIATED">REMEDIATED</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>CWE ID</label>
+            <input type="text" id="edit-fnd-cwe">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" id="edit-fnd-cat">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Affected Asset *</label>
+          <input type="text" id="edit-fnd-asset" required>
+        </div>
+        <div class="modal-segmented-switch">
+          <button type="button" class="modal-seg-btn active" id="edit-fnd-tab-desc" onclick="switchFindingModalTab('desc', 'edit-fnd')">Overview & Remediation</button>
+          <button type="button" class="modal-seg-btn" id="edit-fnd-tab-tech" onclick="switchFindingModalTab('tech', 'edit-fnd')">PoC & Technical Impact</button>
+        </div>
+
+        <div id="edit-fnd-panel-desc" class="modal-tab-panel active">
+          <div class="form-group">
+            <label>Description & Vulnerability Analysis</label>
+            <textarea id="edit-fnd-desc" rows="2" placeholder="Brief explanation of the vulnerability and observed behavior..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Remediation Guidance</label>
+            <textarea id="edit-fnd-remed" rows="2" placeholder="Recommended fix, patch, or hardening configuration..."></textarea>
+          </div>
+        </div>
+
+        <div id="edit-fnd-panel-tech" class="modal-tab-panel" style="display: none;">
+          <div class="form-group">
+            <label>Technical Details & PoC Payload</label>
+            <textarea id="edit-fnd-tech" rows="2" placeholder="HTTP request/response snippet or exploit payload..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Impact & Business Risk</label>
+            <textarea id="edit-fnd-impact" rows="2" placeholder="Business and security impact..."></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-finding')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Updates</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: UPLOAD EVIDENCE ARTIFACT -->
+  <div class="modal-backdrop" id="modal-upload-evidence">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Attach Evidence Artifact</span>
+        <button class="btn-icon" onclick="closeModal('modal-upload-evidence')">✕</button>
+      </div>
+      <form id="form-upload-evidence" onsubmit="handleUploadEvidence(event)">
+        <input type="hidden" id="ev-finding-id">
+        <div class="form-group">
+          <label>Finding Reference</label>
+          <input type="text" id="ev-finding-title" disabled style="opacity: 0.8;">
+        </div>
+        <div class="form-group">
+          <label>Evidence File (Image, Log, Packet Capture) *</label>
+          <input type="file" id="ev-file-input" required accept="image/*,.txt,.log,.json,.pcap,.pdf">
+        </div>
+        <div class="form-group">
+          <label>Evidence Description</label>
+          <input type="text" id="ev-desc" placeholder="e.g. SQL Injection error screen capture">
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-upload-evidence')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Upload & Verify Hash</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW WIRELESS AP OBSERVATION -->
+  <div class="modal-backdrop" id="modal-new-wireless">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Register Wireless Access Point</span>
+        <button class="btn-icon" onclick="closeModal('modal-new-wireless')">✕</button>
+      </div>
+      <form id="form-new-wireless" onsubmit="handleCreateWireless(event)">
+        <div class="form-group">
+          <label>SSID (Network Name) *</label>
+          <input type="text" id="wf-ssid" required placeholder="e.g. Acme-Staff-Sec">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>BSSID (MAC Address) *</label>
+            <input type="text" id="wf-bssid" required placeholder="00:14:22:01:23:45">
+          </div>
+          <div class="form-group">
+            <label>Signal (dBm) *</label>
+            <input type="number" id="wf-signal" required placeholder="-55" value="-60">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Security Standard</label>
+            <select id="wf-security">
+              <option value="WPA3-SAE">WPA3-SAE (Wi-Fi 6)</option>
+              <option value="WPA2-PSK" selected>WPA2-PSK</option>
+              <option value="WPA2-Enterprise">WPA2-Enterprise</option>
+              <option value="OPEN">OPEN (Unencrypted)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Channel / Frequency</label>
+            <input type="number" id="wf-channel" value="36" placeholder="Channel 1, 6, 11, 36">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Observation Notes</label>
+          <textarea id="wf-notes" rows="2" placeholder="Facility passive enumeration notes..."></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-new-wireless')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save AP</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: NEW NOTEBOOK ENTRY -->
+  <div class="modal-backdrop" id="modal-new-note">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Create Notebook Entry</span>
+        <button class="btn-icon" onclick="closeModal('modal-new-note')">✕</button>
+      </div>
+      <form id="form-new-note" onsubmit="handleCreateNote(event)">
+        <div class="form-group">
+          <label>Note Title *</label>
+          <input type="text" id="note-title" required placeholder="e.g. Authentication Bypass Analysis">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="note-category">
+              <option value="OBSERVATION">Observations</option>
+              <option value="METHODOLOGY">Methodology</option>
+              <option value="CREDENTIALS">Credentials</option>
+              <option value="COMMANDS">Commands</option>
+              <option value="RECON">Recon</option>
+              <option value="CHECKLIST">Checklists</option>
+              <option value="EVIDENCE">Evidence</option>
+              <option value="GENERAL">General</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tags (Comma-separated)</label>
+            <input type="text" id="note-tags" placeholder="#jwt, #recon, #sqli">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Note Content *</label>
+          <textarea id="note-content" rows="4" required
+            placeholder="Technical findings, command outputs, verification steps..."></textarea>
+        </div>
+        <div class="form-row">
+          <label class="custom-checkbox"
+            style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);">
+            <input type="checkbox" id="note-pinned">
+            <span>Pin Note to Top</span>
+          </label>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-new-note')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Note</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT NOTEBOOK ENTRY -->
+  <div class="modal-backdrop" id="modal-edit-note">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Edit Notebook Entry</span>
+        <button class="btn-icon" onclick="closeModal('modal-edit-note')">✕</button>
+      </div>
+      <form id="form-edit-note" onsubmit="handleUpdateNote(event)">
+        <input type="hidden" id="edit-note-id">
+        <div class="form-group">
+          <label>Note Title *</label>
+          <input type="text" id="edit-note-title" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Category *</label>
+            <select id="edit-note-category">
+              <option value="OBSERVATION">Observations</option>
+              <option value="METHODOLOGY">Methodology</option>
+              <option value="CREDENTIALS">Credentials</option>
+              <option value="COMMANDS">Commands</option>
+              <option value="RECON">Recon</option>
+              <option value="CHECKLIST">Checklists</option>
+              <option value="EVIDENCE">Evidence</option>
+              <option value="GENERAL">General</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tags</label>
+            <input type="text" id="edit-note-tags">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Note Content *</label>
+          <textarea id="edit-note-content" rows="4" required></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-note')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDIT ENGAGEMENT -->
+  <div class="modal-backdrop" id="modal-edit-assessment">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Edit Engagement Parameters</span>
+        <button class="btn-icon" onclick="closeModal('modal-edit-assessment')">✕</button>
+      </div>
+      <form id="form-edit-assessment" onsubmit="handleUpdateAssessment(event)">
+        <input type="hidden" id="edit-asm-id">
+        <div class="form-group">
+          <label>Title *</label>
+          <input type="text" id="edit-asm-name" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Client *</label>
+            <input type="text" id="edit-asm-client" required>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select id="edit-asm-status">
+              <option value="ACTIVE">ACTIVE</option>
+              <option value="COMPLETED">COMPLETED</option>
+              <option value="ARCHIVED">ARCHIVED</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Start Date</label>
+            <input type="date" id="edit-asm-start">
+          </div>
+          <div class="form-group">
+            <label>End Date</label>
+            <input type="date" id="edit-asm-end">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Authorized Scope</label>
+          <textarea id="edit-asm-scope" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Out-of-Scope Assets</label>
+          <textarea id="edit-asm-out-of-scope" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Objectives</label>
+          <textarea id="edit-asm-objectives" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-edit-assessment')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Update Engagement</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: VERIFY SECURITY PIN -->
+  <div class="modal-backdrop" id="modal-verify-pin">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span class="modal-title">Application Lock Verification</span>
+        <button class="btn-icon" onclick="closeModal('modal-verify-pin')">✕</button>
+      </div>
+      <form onsubmit="handleVerifyPin(event)">
+        <div class="form-group">
+          <label>Enter Security PIN</label>
+          <input type="password" id="input-security-pin" maxlength="6" required placeholder="••••"
+            style="text-align: center; letter-spacing: 8px; font-size: 20px;">
+          <span style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Default operator PIN: 1337 or
+            0000</span>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modal-verify-pin')">Cancel</button>
+          <button type="submit" class="btn btn-primary">Authenticate PIN</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REPORT DOCUMENT PREVIEW -->
+  <div class="modal-backdrop" id="modal-report-preview">
+    <div class="modal-card"
+      style="max-width: 680px; width: 95%; max-height: 88vh; display: flex; flex-direction: column;">
+      <div class="modal-header"
+        style="flex-shrink: 0; padding: 12px 16px; border-bottom: 1px solid var(--border-subtle); display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 8px; flex: 1; overflow: hidden; margin-right: 12px;">
+          <span style="font-size: 16px;">📄</span>
+          <span class="modal-title" id="report-modal-title"
+            style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 13px;">Document
+            Preview</span>
+        </div>
+        <div style="display: flex; gap: 6px; align-items: center; flex-shrink: 0;">
+          <button class="btn btn-sm btn-outline" id="report-modal-download-btn" onclick="handleActiveModalDownload()"
+            title="Download TXT">📥 TXT</button>
+          <button class="btn btn-sm btn-primary" id="report-modal-print-btn" onclick="handleActiveModalPrint()"
+            title="Export PDF">🖨️ PDF</button>
+          <button class="btn-icon" onclick="closeModal('modal-report-preview')">✕</button>
+        </div>
+      </div>
+      <div id="report-modal-body"
+        style="padding: 16px; overflow-y: auto; flex: 1; font-size: 11.5px; line-height: 1.5; color: var(--text-primary); background: var(--surface-1);">
+        <!-- Loaded dynamically -->
+      </div>
+    </div>
+  </div>
+    </div>
+
+  </main>
+
+  <!-- Live REST API Inspector Drawer -->
+  <aside class="api-drawer" id="api-drawer">
+    <div class="api-drawer-header">
+      <div class="api-drawer-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+        </svg>
+        <span>LIVE REST API CALLS & RESPONSES (/api/v1)</span>
+      </div>
+      <button class="btn-icon" onclick="toggleApiDrawer()">✕</button>
+    </div>
+    <div class="api-drawer-body" id="api-log-container">
+      <div class="api-empty-state">No REST API calls logged yet. Perform actions to see live HTTP traffic.</div>
+    </div>
+  </aside>
+
+  <script src="app.js?v=39"></script>
+</body>
+
+</html>

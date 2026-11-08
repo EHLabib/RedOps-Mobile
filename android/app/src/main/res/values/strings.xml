@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">RedOps</string>
+    <string name="app_subtitle">Authorized Security Assessment Platform</string>
+    <string name="authorization_notice">Use only on systems and networks for which you have explicit authorization.</string>
+    <string name="authorized_use_only">Authorized use only.</string>
+
+    <!-- Navigation Labels -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_assessments">Assessments</string>
+    <string name="nav_targets">Targets</string>
+    <string name="nav_recon">Recon</string>
+    <string name="nav_wireless">Wireless</string>
+    <string name="nav_web_tests">Web/API</string>
+    <string name="nav_findings">Findings</string>
+    <string name="nav_reports">Reports</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Status Strings -->
+    <string name="status_online">ONLINE</string>
+    <string name="status_offline">OFFLINE</string>
+    <string name="status_syncing">SYNCING</string>
+    <string name="status_sync_error">SYNC ERROR</string>
+</resources>

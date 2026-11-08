@@ -1,0 +1,33 @@
+{
+  "name": "redops-backend",
+  "version": "1.0.0",
+  "description": "RedOps Mobile - Authorized Security Assessment Platform REST API & Web Simulator",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/**/*.test.js",
+    "test:security": "node tests/security_audit.test.js",
+    "test:all": "node tests/security_audit.test.js && node tests/qa_release_suite.js && node tests/verify_all.js && node tests/security_utilities.test.js && node tests/verify_toolkit_api.js",
+    "seed": "node src/database/seed.js",
+    "db:seed": "node src/database/seed.js"
+  },
+  "keywords": [
+    "redops",
+    "cybersecurity",
+    "pentesting",
+    "assessment-platform",
+    "rest-api"
+  ],
+  "author": "RedOps Project Contributors",
+  "license": "MIT",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}

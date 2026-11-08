@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Cyber Dark Palette -->
+    <color name="cyber_dark_bg">#0B0F19</color>
+    <color name="cyber_dark_surface">#131B2E</color>
+    <color name="cyber_dark_surface_variant">#1E293B</color>
+    <color name="cyber_green_primary">#00E676</color>
+    <color name="cyber_cyan_secondary">#00E5FF</color>
+    <color name="cyber_border">#334155</color>
+
+    <!-- Severity Accent Colors -->
+    <color name="severity_critical">#FF5252</color>
+    <color name="severity_high">#FF7043</color>
+    <color name="severity_medium">#FFB300</color>
+    <color name="severity_low">#FDD835</color>
+    <color name="severity_info">#40C4FF</color>
+</resources>
